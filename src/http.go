@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func installHttpHandlers(player *Player) {
+func InstallHttpHandlers(player *Player) {
 	http.HandleFunc("/ready", func(writer http.ResponseWriter, request *http.Request) {
 		ready := player.Ready()
 		statusCode := http.StatusOK
