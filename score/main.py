@@ -33,22 +33,26 @@ def print_failure(msg):
 
 
 def print_success():
-    print('\n\n       =======RESULT=======')
+    print('\n\n=====================RESULT=====================')
 
     print('\n⭐ Phase 1 score: {:0.4f}:'.format(board.p1_score.calculate()))
     print(board.p1_score.pilot_snapshot)
 
-    print('\nmem ratio: {:0.4f}, connection std: {:0.4f}, mem std: {:0.4f}, time cost: {:0.2f}ms'
-          .format(board.p1_score.mem_used/board.p1_score.mem_total, board.p1_score.std_conn, board.p1_score.std_mem, board.p1_score.ms_cost))
+    memrate = board.p1_score.mem_used/board.p1_score.mem_total
+    print('\n@ M加载内存/M服务内存: {:0.4f}'.format(memrate))
+    print('@ 连接标准差: {:0.4f}'.format(board.p1_score.std_conn))
+    print('@ 内存标准差: {:0.4f}'.format(board.p1_score.std_mem))
+    print('@ 耗时: {:0.4f}ms'.format(board.p1_score.ms_cost))
 
     print('\n⭐ Phase 2 score: {:0.4f}:'.format(board.p2_score.calculate()))
     print(board.p2_score.pilot_snapshot)
+    memrate = board.p2_score.mem_used/board.p2_score.mem_total
+    print('\n@ M加载内存/M服务内存: {:0.4f}'.format(memrate))
+    print('@ 连接标准差: {:0.4f}'.format(board.p2_score.std_conn))
+    print('@ 内存标准差: {:0.4f}'.format(board.p2_score.std_mem))
+    print('@ 耗时: {:0.4f}ms'.format(board.p2_score.ms_cost))
 
-    print('\nmem ratio: {:0.4f}, connection std: {:0.4f}, mem std: {:0.4f}, time cost: {:0.2f}ms'
-          .format(board.p2_score.mem_used/board.p2_score.mem_total, board.p2_score.std_conn, board.p2_score.std_mem, board.p2_score.ms_cost))
-
-    print('\n\n🎉 Total score: {:0.4f}\n'.format(board.total_score()))
-
+    print('\n\n🎉 总得分: {:0.4f}\n'.format(board.total_score()))
     write2disk(msg, '0', board.total_score())
 
 
@@ -209,14 +213,14 @@ if __name__ == "__main__":
         if not success:
             print_failure(msg)
             exit(1)
-    
+
         success, msg = phase_1()
         if not success:
             print_failure(msg)
             exit(1)
-    
+
         load_dynamic_inputs()
-    
+
         success, msg = phase_2()
         if not success:
             print_failure(msg)
@@ -224,6 +228,6 @@ if __name__ == "__main__":
     except Exception as e:
         print_failure('grading failed, try again later or contact xuanyin')
         exit(1)
-    
+
     # done
     print_success()

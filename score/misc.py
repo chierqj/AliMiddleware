@@ -59,10 +59,10 @@ class Context:
     def pliot_snapshot(self):
         snapshot = 'Pilot Status:\n'
         for p in self.pilots.values():
-            snapshot += '{}-> connections: {:d}, services(apps): {:d}({:d}), memory: {:0.2f}\n'.format(
-                p.id, p.cons, len(p.srvs), len(p.apps), p.mem)
+            snapshot += '@ {} [连接: {:d}, 加载内存: {:0.2f}, svcs: {:d}, apps: {:d}]\n'.format(
+                p.id, p.cons, p.mem, len(p.srvs), len(p.apps))
 
-        snapshot += '\n[Total connections: {:d}, Apps: {:d}]'.format(
+        snapshot += '\n@ [总连接: {:d}, Apps: {:d}]'.format(
             sum(ctx.apps.values()), len(ctx.apps))
 
         return snapshot

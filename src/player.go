@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	mapset "github.com/deckarep/golang-set"
 )
 
 var (
@@ -21,16 +23,20 @@ type Service struct {
 	Count int
 }
 type App struct {
-	AppName      string    // 应用名称
-	SidecarCount int       // Sidecar个数
-	ServiceList  []Service // 服务依赖列表
+	AppName          string    // 应用名称
+	SidecarCount     int       // Sidecar个数
+	ServiceTolMemory int       // 服务总内存
+	ServiceList      []Service // 服务依赖列表
 }
 
 type Player struct {
-	Params  LoadData        // 读入的所有数据
-	AppList []*App          // 所有的app
-	Pilots  []string        // pilots
-	MapApp  map[string]*App // MapApp
+	Params      LoadData        // 读入的所有数据
+	AppList     []*App          // 所有的app
+	Pilots      []string        // pilots
+	MapApp      map[string]*App // MapApp
+	PilotsSize  int             // pilots size
+	AppListSize int             // app_list size
+	TotalMemory float64         // 服务总内存
 }
 
 /*
@@ -41,9 +47,10 @@ type Player struct {
  * @ return:			string: logstr
  */
 func (ths *App) LogMsg() string {
-	logStr := fmt.Sprintf("AppName: %s, SidecarCount: %d, ServiceList: %d",
+	logStr := fmt.Sprintf("app: %s, sidecar: %d, svcs: %d, svclen: %d",
 		ths.AppName,
 		ths.SidecarCount,
+		ths.ServiceTolMemory,
 		len(ths.ServiceList),
 	)
 	return logStr
@@ -107,18 +114,28 @@ func (ths *Player) LoadData() {
  */
 func (ths *Player) CreateAppList() {
 	ths.AppList = ths.AppList[0:0]
+	ths.TotalMemory = 0
+	vis := mapset.NewSet()
 	for appName, sidecar := range ths.Params.Apps {
-		var srvList []Service
-		for srv, count := range ths.Params.Dependencies[appName] {
-			srvList = append(srvList, Service{srv, count})
+		var svcList []Service
+		sum := 0
+		for svc, count := range ths.Params.Dependencies[appName] {
+			svcList = append(svcList, Service{svc, count})
+			sum += count
+			if !vis.Contains(svc) {
+				vis.Add(svc)
+				ths.TotalMemory += float64(count) * MB_EACH_NODE
+			}
 		}
 		app := &App{
-			AppName:      appName,
-			SidecarCount: sidecar,
-			ServiceList:  srvList,
+			AppName:          appName,
+			SidecarCount:     sidecar,
+			ServiceTolMemory: sum,
+			ServiceList:      svcList,
 		}
 		ths.AppList = append(ths.AppList, app)
 	}
+	ths.AppListSize = len(ths.AppList)
 }
 
 /*
