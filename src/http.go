@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	data "src/data_manager"
 )
 
-func InstallHttpHandlers(player *Player) {
+func InstallHttpHandlers() {
 	http.HandleFunc("/ready", func(writer http.ResponseWriter, request *http.Request) {
-		ready := player.Ready()
+		ready := Ready()
 		statusCode := http.StatusOK
 		if !ready {
 			statusCode = http.StatusInternalServerError
@@ -31,11 +32,15 @@ func InstallHttpHandlers(player *Player) {
 			return
 		}
 
-		res, err := player.P1(pilots.Pilots)
+		res := P1Start(pilots.Pilots)
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if bs, err := json.Marshal(res); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		} else {
-			http.Error(writer, res, http.StatusOK)
+			http.Error(writer, string(bs), http.StatusOK)
 		}
 	})
 
@@ -46,17 +51,21 @@ func InstallHttpHandlers(player *Player) {
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		var param LoadData
+		var param data.LoadData
 		if err := json.Unmarshal(bs, &param); err != nil {
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		res, err := player.P2(param)
+		res := P2Start(param)
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if bs, err := json.Marshal(res); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		} else {
-			http.Error(writer, res, http.StatusOK)
+			http.Error(writer, string(bs), http.StatusOK)
 		}
 	})
 }
